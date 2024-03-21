@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Object Detector</title>
+
+</head>
+
+<body>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/mobilenet@2.1.1"></script>
+
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+
+    <div id="status"></div>
+
+    <script>
+        (async () => {
+            const model = await mobilenet.load();
+            const canvas = document.getElementById('canvas');
+            const context = canvas.getContext('2d');
+            const video = document.getElementById('video');
+            const status = document.getElementById('status');
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: false,
+                video: {
+                    facingMode: 'environment'
+                }
+            });
+
+            //  stream to raw stream of video data
+            video.srcObject = stream;
+
+            predictObject();
+
+            async function predictObject() {
+                context.drawImage(video, 0, 0, 500, 500);
+                const prediction = await model.classify(canvas);
+                status.innerHTML = `${prediction[0].className} - ${prediction[0].probability}`;
+
+                requestAnimationFrame(predictObject)
+            }
+        })();
+    </script>
+</body>
+
+</html>
